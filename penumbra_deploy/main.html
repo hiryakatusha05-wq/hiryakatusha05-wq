@@ -1,117 +1,84 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Penumbra Solutions — портал</title>
+    <title>Penumbra Solutions — тест</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body { height: 100%; overflow: hidden; }
-        body { background: #0a0a0a; font-family: 'Sitka Subheading', monospace; color: #ddd; }
-        .app-layout { display: flex; height: 100%; }
-        .sidebar {
-            width: 280px; background: #0a0a0a; border-right: 1px solid #2a2a2a;
-            padding: 20px 0; overflow-y: auto; flex-shrink: 0;
+        body {
+            background: #0a0a0a;
+            font-family: monospace;
         }
-        .sidebar .logo { text-align: center; font-size: 1.4rem; letter-spacing: 4px; color: #fff; padding: 20px 10px; border-bottom: 1px solid #2a2a2a; }
-        .sidebar nav ul { list-style: none; }
+        .app-layout {
+            display: flex;
+            height: 100vh;
+        }
+        .sidebar {
+            width: 280px;
+            background: #0a0a0a;
+            border-right: 1px solid #2a2a2a;
+            padding: 20px 0;
+            overflow-y: auto;
+        }
+        .sidebar .logo {
+            text-align: center;
+            font-size: 1.4rem;
+            letter-spacing: 4px;
+            color: #fff;
+            padding: 20px 10px;
+            border-bottom: 1px solid #2a2a2a;
+        }
+        .sidebar nav ul { list-style: none; padding: 0; }
         .sidebar nav li { margin: 12px 20px; }
-        .sidebar nav a { color: #ccc; text-decoration: none; display: block; padding: 8px 12px; border-radius: 8px; }
-        .sidebar nav a:hover, .sidebar nav a.active { background: #2a2a2a; color: white; }
-        .main-content { flex: 1; display: flex; flex-direction: column; height: 100%; overflow: hidden; }
-        .top-bar { padding: 20px 30px; border-bottom: 1px solid #2a2a2a; display: flex; justify-content: space-between; align-items: center; }
+        .sidebar nav a { color: #ccc; text-decoration: none; font-size: 1.1rem; display: block; }
+        .sidebar nav a:hover { color: white; }
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .top-bar {
+            padding: 20px 30px;
+            border-bottom: 1px solid #2a2a2a;
+        }
         .site-title { font-size: 1.8rem; color: #fff; }
-        .user-profile { display: flex; align-items: center; gap: 12px; cursor: pointer; background: rgba(0,0,0,0.5); padding: 6px 15px; border-radius: 40px; }
-        .user-avatar { width: 40px; height: 40px; border-radius: 50%; background: #444; display: flex; align-items: center; justify-content: center; }
-        .user-name { font-weight: bold; }
-        #pageContent { flex: 1; overflow: hidden; background: white; }
-        #pageContent.fullscreen { height: 100%; padding: 0; margin: 0; }
+        #pageContent {
+            flex: 1;
+            overflow: hidden;
+            background: white;
+        }
+        #pageContent.fullscreen { height: 100%; }
     </style>
 </head>
 <body>
 <div class="app-layout">
     <div class="sidebar">
         <div class="logo">PENUMBRA</div>
-        <nav><ul>
-            <li><a href="#" data-section="waiting">⏳ Зона ожидания</a></li>
-            <li><a href="#" data-section="nessa">🔮 Предсказания Нессы</a></li>
-            <li><a href="#" data-section="bar">🍸 Бар Эхо</a></li>
-            <li><a href="#" data-section="beacon">🕯️ Маяк Забвения</a></li>
-            <li><a href="#" data-section="archive">📂 Архив дел</a></li>
-        </ul></nav>
+        <nav><ul><li><a href="#" id="waitingLink">Зона ожидания</a></li></ul></nav>
     </div>
     <div class="main-content">
-        <div class="top-bar">
-            <div class="site-title">Penumbra Solutions</div>
-            <div class="user-profile" id="userProfileBtn">
-                <div class="user-avatar" id="userAvatar">👤</div>
-                <span class="user-name" id="userName">Агент</span>
-            </div>
-        </div>
+        <div class="top-bar"><div class="site-title">Penumbra Solutions (тест)</div></div>
         <div id="pageContent"></div>
     </div>
 </div>
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
-    const firebaseConfig = {
-        apiKey: "AIzaSyB4c624YTSRL68skj3SwRku5lsI_c4EyPU",
-        authDomain: "penumbra-test.firebaseapp.com",
-        projectId: "penumbra-test",
-        storageBucket: "penumbra-test.firebasestorage.app",
-        messagingSenderId: "229849130101",
-        appId: "1:229849130101:web:e06ead8bfe40b4df43443c"
-    };
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    let currentUserData = null;
-
-    async function loadSection(section) {
-        const content = document.getElementById('pageContent');
-        const files = { waiting: 'views/waiting.html', nessa: 'views/nessa.html', bar: 'views/bar.html', beacon: 'views/beacon.html', archive: 'views/archive.html' };
-        const url = files[section];
-        if (!url) return;
+<script>
+    async function loadWaiting() {
+        const contentDiv = document.getElementById('pageContent');
         try {
-            const resp = await fetch(url);
-            if (!resp.ok) throw new Error();
-            content.innerHTML = await resp.text();
-            content.classList.add('fullscreen');
-            if (section === 'waiting') {
-                // дополнительная инициализация, если нужна
-            }
-        } catch(e) {
-            content.innerHTML = `<div style="padding:20px;color:red;">Ошибка загрузки раздела ${section}</div>`;
+            const response = await fetch('views/waiting.html');
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+            const html = await response.text();
+            contentDiv.innerHTML = html;
+            contentDiv.classList.add('fullscreen');
+        } catch (err) {
+            contentDiv.innerHTML = `<div style="padding:20px; color:red;">Ошибка загрузки waiting.html: ${err.message}<br>Убедись, что файл лежит в папке views/</div>`;
         }
     }
-
-    function setActive(sec) {
-        document.querySelectorAll('.sidebar nav a').forEach(a => a.classList.remove('active'));
-        const activeLink = document.querySelector(`.sidebar nav a[data-section="${sec}"]`);
-        if (activeLink) activeLink.classList.add('active');
-    }
-
-    document.querySelectorAll('.sidebar nav a').forEach(a => {
-        a.addEventListener('click', (e) => {
-            e.preventDefault();
-            const sec = a.getAttribute('data-section');
-            setActive(sec);
-            loadSection(sec);
-        });
-    });
-    document.getElementById('userProfileBtn').addEventListener('click', () => alert('Страница профиля в разработке'));
-
-    onAuthStateChanged(auth, async (user) => {
-        if (!user) { window.location.href = 'index.html'; return; }
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        if (!userDoc.exists() || userDoc.data().approved !== true) { window.location.href = 'index.html'; return; }
-        currentUserData = userDoc.data();
-        document.getElementById('userName').innerText = currentUserData.nickname || 'Агент';
-        const avatarDiv = document.getElementById('userAvatar');
-        if (currentUserData.avatar) avatarDiv.innerHTML = `<img src="${currentUserData.avatar}" style="width:100%;height:100%;object-fit:cover;">`;
-        loadSection('waiting');
-        setActive('waiting');
-    });
+    document.getElementById('waitingLink').onclick = (e) => { e.preventDefault(); loadWaiting(); };
+    loadWaiting();
 </script>
 </body>
 </html>
